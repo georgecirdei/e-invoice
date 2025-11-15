@@ -112,7 +112,7 @@ export default function PaymentsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-primary">
-                      {stats?.totalInvoices > 0
+                      {stats && stats.totalInvoices > 0
                         ? Math.round((stats.paidInvoices / stats.totalInvoices) * 100)
                         : 0}%
                     </div>
