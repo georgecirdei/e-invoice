@@ -55,14 +55,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://invoizz.com
+        - NEXT_PUBLIC_API_URL=https://invoizz.com/api/v1
     container_name: einvoice-frontend
     restart: always
     depends_on:
       - backend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: https://invoizz.com
+      NEXT_PUBLIC_API_URL: https://invoizz.com/api/v1
     ports:
       - "3000:3000"
     networks:
