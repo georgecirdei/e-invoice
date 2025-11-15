@@ -34,11 +34,11 @@ services:
       NODE_ENV: production
       PORT: 8000
       DATABASE_URL: postgresql://e-invoice:M@donna1facebaie2@postgres:5432/e-invoice
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: your_jwt_secret_change_this_to_random_32_chars
       JWT_EXPIRES_IN: 7d
       REFRESH_TOKEN_EXPIRES_IN: 30d
-      REFRESH_SECRET: ${REFRESH_SECRET}
-      CORS_ORIGIN: ${FRONTEND_URL}
+      REFRESH_SECRET: your_refresh_secret_change_this_to_random_32_chars
+      CORS_ORIGIN: https://invoizz.com
     ports:
       - "8000:8000"
     networks:
@@ -60,7 +60,7 @@ services:
       - backend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${BACKEND_URL}
+      NEXT_PUBLIC_API_URL: http://backend:8000
     ports:
       - "3000:3000"
     networks:
