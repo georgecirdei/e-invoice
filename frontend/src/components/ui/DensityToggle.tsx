@@ -16,7 +16,7 @@ export function DensityToggle() {
   return (
     <div className="relative group">
       <Button 
-        size="micro" 
+        size="sm" 
         variant="outline" 
         className="dense-flex"
         title="Density Mode"
