@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -12,7 +12,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Input } from '@/components/ui/Input';
 import { DensityToggle } from '@/components/ui/DensityToggle';
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -297,6 +297,22 @@ export default function InvoicesPage() {
         </div>
       </MainLayout>
     </ProtectedRoute>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <MainLayout>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </MainLayout>
+      </ProtectedRoute>
+    }>
+      <InvoicesPageContent />
+    </Suspense>
   );
 }
 
