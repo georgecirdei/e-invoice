@@ -307,7 +307,6 @@ export default function CountriesPage() {
                   </CardDescription>
                 </div>
                 <Button
-                  variant="primary"
                   onClick={() => {
                     setShowAddForm(true);
                     setEditingCountry(null);
@@ -328,7 +327,7 @@ export default function CountriesPage() {
               ) : countries.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500 mb-4">No countries configured</p>
-                  <Button variant="primary" onClick={() => setShowAddForm(true)}>
+                  <Button  onClick={() => setShowAddForm(true)}>
                     Add First Country
                   </Button>
                 </div>
