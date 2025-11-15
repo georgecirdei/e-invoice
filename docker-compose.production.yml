@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: einvoice-db
+    restart: always
+    environment:
+      POSTGRES_DB: einvoice_prod
+      POSTGRES_USER: einvoice_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - einvoice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U einvoice_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: einvoice-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      DATABASE_URL: postgresql://einvoice_user:${DB_PASSWORD}@postgres:5432/einvoice_prod
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 7d
+      REFRESH_TOKEN_EXPIRES_IN: 30d
+      REFRESH_SECRET: ${REFRESH_SECRET}
+      CORS_ORIGIN: ${FRONTEND_URL}
+    ports:
+      - "8000:8000"
+    networks:
+      - einvoice-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: einvoice-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${BACKEND_URL}
+    ports:
+      - "3000:3000"
+    networks:
+      - einvoice-network
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  einvoice-network:
+    driver: bridge
+

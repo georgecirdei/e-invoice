@@ -1,0 +1,380 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+
+  invoices      Invoice[]
+  refreshTokens RefreshToken[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+model Organization {
+  id                 String   @id @default(cuid())
+  name               String
+  taxId              String   @unique
+  registrationNumber String?  @unique
+  email              String
+  phone              String?
+  address            String?
+  city               String?
+  state              String?
+  country            String
+  postalCode         String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  users     User[]
+  invoices  Invoice[]
+  customers Customer[]
+
+  @@index([taxId])
+}
+
+model Customer {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String
+  taxId              String?
+  registrationNumber String?
+  phone              String?
+  address            String?
+  city               String?
+  state              String?
+  country            String
+  postalCode         String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  invoices Invoice[]
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  invoiceDate   DateTime
+  dueDate       DateTime?
+  status        InvoiceStatus @default(DRAFT)
+  currency      String        @default("USD")
+  subtotal      Decimal       @db.Decimal(19, 4)
+  taxAmount     Decimal       @db.Decimal(19, 4)
+  totalAmount   Decimal       @db.Decimal(19, 4)
+  notes         String?
+
+  pdfUrl  String?
+  xmlData String? @db.Text
+  qrCode  String?
+
+  submittedAt      DateTime?
+  validatedAt      DateTime?
+  governmentId     String?
+  governmentStatus String?
+
+  // Payment tracking
+  paymentStatus PaymentStatus @default(UNPAID)
+  paidAmount    Decimal       @default(0) @db.Decimal(19, 4)
+  paymentDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
+
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+
+  @@index([organizationId])
+  @@index([customerId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Decimal       @db.Decimal(19, 4)
+  paymentDate   DateTime
+  paymentMethod PaymentMethod
+  reference     String?
+  notes         String?
+
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  CHECK
+  PAYPAL
+  STRIPE
+  OTHER
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(cuid())
+  description String
+  quantity    Decimal @db.Decimal(19, 4)
+  unitPrice   Decimal @db.Decimal(19, 4)
+  taxRate     Decimal @db.Decimal(5, 2)
+  taxAmount   Decimal @db.Decimal(19, 4)
+  totalAmount Decimal @db.Decimal(19, 4)
+
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId])
+  @@index([token])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SUBMITTED
+  VALIDATED
+  REJECTED
+  CANCELLED
+}
+
+model CountryConfig {
+  id          String  @id @default(cuid())
+  countryCode String  @unique // e.g., "MY", "SA", "SG"
+  countryName String
+  isActive    Boolean @default(true)
+
+  // Government API Configuration
+  apiProvider     String // "myinvois", "zatca", "mock"
+  apiBaseUrl      String?
+  apiClientId     String?
+  apiClientSecret String? // Encrypted in production
+
+  // XML Configuration
+  xmlFormat    String // "UBL-MY", "UBL-SA", etc.
+  xmlNamespace String?
+
+  // Legal Requirements
+  requiresTaxId     Boolean @default(true)
+  requiresRegNumber Boolean @default(false)
+  dateFormat        String  @default("YYYY-MM-DD")
+  currency          String  @default("USD")
+
+  // Tax Configuration
+  standardTaxRate Decimal  @db.Decimal(5, 2)
+  reducedTaxRate  Decimal? @db.Decimal(5, 2)
+  zeroTaxRate     Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  complianceRules ComplianceRule[]
+  xmlTemplates    XmlTemplate[]
+
+  @@index([countryCode])
+  @@index([isActive])
+}
+
+model ComplianceRule {
+  id        String        @id @default(cuid())
+  countryId String
+  country   CountryConfig @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  ruleName     String
+  ruleType     String // "format", "mandatory", "validation", "calculation"
+  field        String // Field this rule applies to
+  pattern      String? // Regex pattern for format rules
+  errorMessage String
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([countryId])
+  @@index([isActive])
+}
+
+model XmlTemplate {
+  id        String        @id @default(cuid())
+  countryId String
+  country   CountryConfig @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  templateName String
+  templateType String // "invoice", "creditNote", "debitNote"
+  xmlStructure String  @db.Text // JSON representation of XML structure
+  isActive     Boolean @default(true)
+  version      String  @default("1.0")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([countryId, templateType, version])
+  @@index([countryId])
+  @@index([isActive])
+}
+
+model SystemSettings {
+  id           String  @id @default(cuid())
+  settingKey   String  @unique
+  settingValue String  @db.Text
+  settingType  String // "string", "number", "boolean", "json"
+  description  String?
+  isEditable   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([settingKey])
+}
+
+model Page {
+  id              String  @id @default(cuid())
+  title           String
+  slug            String  @unique
+  metaDescription String?
+  blocks          Json // Array of block objects
+  isPublished     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isPublished])
+}
+
+model ContactFormSubmission {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  subject String?
+  message String  @db.Text
+  status  String  @default("new") // "new", "in-progress", "resolved"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Notification {
+  id       String               @id @default(cuid())
+  type     NotificationType
+  title    String
+  message  String               @db.Text
+  link     String? // Optional URL to navigate to
+  isRead   Boolean              @default(false)
+  priority NotificationPriority @default(MEDIUM)
+  metadata Json? // Optional extra data (invoiceId, paymentId, etc.)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+enum NotificationType {
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_SUBMITTED
+  INVOICE_VALIDATED
+  INVOICE_REJECTED
+  INVOICE_CANCELLED
+  PAYMENT_RECEIVED
+  PAYMENT_OVERDUE
+  CUSTOMER_ADDED
+  CUSTOMER_UPDATED
+  ORGANIZATION_MEMBER_ADDED
+  ORGANIZATION_MEMBER_REMOVED
+  COMPLIANCE_ALERT
+  COMPLIANCE_DEADLINE
+  SYSTEM_ANNOUNCEMENT
+  OTHER
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
