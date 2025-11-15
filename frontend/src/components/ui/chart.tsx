@@ -110,74 +110,47 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<"div"> & {
-      hideLabel?: boolean
-      hideIndicator?: boolean
-      indicator?: "line" | "dot" | "dashed"
-      nameKey?: string
-      labelKey?: string
-    }
->(
-  (
-    {
-      active,
-      payload,
-      className,
-      indicator = "dot",
-      hideLabel = false,
-      hideIndicator = false,
-      label,
-      labelFormatter,
-      labelClassName,
-      formatter,
-      nameKey,
-      labelKey,
-    },
-    ref
-  ) => {
-    const { config } = useChart()
+  any
+>((props, ref) => {
+  const { active, payload, className } = props
 
-    if (!active || !payload?.length) {
-      return null
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
-          className
-        )}
-      >
-        <div className="grid gap-1.5">
-          {payload.map((item, index) => (
-            <div
-              key={item.dataKey}
-              className="flex w-full items-center gap-2"
-            >
-              {!hideIndicator && (
-                <div
-                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
-              )}
-              <div className="flex flex-1 justify-between">
-                <span className="text-muted-foreground">{item.name}</span>
-                <span className="font-mono font-medium tabular-nums text-foreground">
-                  {item.value}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  if (!active || !payload?.length) {
+    return null
   }
-)
-ChartTooltipContent.displayName = "ChartTooltip"
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+        className
+      )}
+    >
+      <div className="grid gap-1.5">
+        {payload.map((item: any, index: number) => (
+          <div
+            key={item.dataKey || index}
+            className="flex w-full items-center gap-2"
+          >
+            <div
+              className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+              style={{
+                backgroundColor: item.color || item.fill,
+              }}
+            />
+            <div className="flex flex-1 justify-between">
+              <span className="text-muted-foreground">{item.name}</span>
+              <span className="font-mono font-medium tabular-nums text-foreground">
+                {item.value}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
+ChartTooltipContent.displayName = "ChartTooltipContent"
 
 const ChartLegend = RechartsPrimitive.Legend
 const ChartLegendContent = React.forwardRef<
