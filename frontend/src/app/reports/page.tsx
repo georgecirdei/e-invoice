@@ -146,7 +146,7 @@ export default function ReportsPage() {
                           cx="50%"
                           cy="50%"
                           outerRadius={80}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                       </PieChart>
