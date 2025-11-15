@@ -22,10 +22,12 @@ ENV NODE_ENV=production
 
 # Copy necessary files from builder
 COPY --from=builder /app/next.config.* ./
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/package.json ./package.json
+
+# Copy public folder if it exists
+COPY --from=builder /app/public ./public 2>/dev/null || true
 
 # Expose port
 EXPOSE 3000
