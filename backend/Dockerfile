@@ -4,7 +4,10 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --only=production
+COPY tsconfig.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
 # Copy prisma schema
 COPY prisma ./prisma/
@@ -15,9 +18,15 @@ RUN npx prisma generate
 # Copy source code
 COPY . .
 
+# Build TypeScript
+RUN npm run build
+
+# Remove devDependencies
+RUN npm prune --production
+
 # Expose port
 EXPOSE 8000
 
-# Start the app
-CMD ["npm", "run", "start"]
+# Start the compiled app
+CMD ["node", "dist/server.js"]
 
