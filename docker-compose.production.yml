@@ -66,10 +66,6 @@ services:
     networks:
       - einvoice-network
 
-volumes:
-  postgres-data:
-    driver: local
-
   # pgAdmin - Database Management UI
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -85,6 +81,10 @@ volumes:
       - einvoice-network
     depends_on:
       - postgres
+
+volumes:
+  postgres-data:
+    driver: local
 
 networks:
   einvoice-network:
