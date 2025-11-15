@@ -89,7 +89,7 @@ export default function CustomersPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button type="submit" variant="primary">
+                <Button type="submit" >
                   Search
                 </Button>
                 {searchTerm && (
@@ -145,7 +145,6 @@ export default function CustomersPage() {
                   </p>
                   <div className="mt-6">
                     <Button
-                      variant="primary"
                       onClick={() => router.push('/customers/add')}
                     >
                       + Add Customer

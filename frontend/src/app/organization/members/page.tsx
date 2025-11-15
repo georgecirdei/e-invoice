@@ -135,7 +135,7 @@ export default function MembersPage() {
 
   return (
     <ProtectedRoute><MainLayout><div className="mb-6 flex items-center justify-between"><h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
-            <Button variant="primary" size="sm" onClick={() => setShowAddForm(!showAddForm)}>
+            <Button  size="sm" onClick={() => setShowAddForm(!showAddForm)}>
               {showAddForm ? 'Cancel' : '+ Add Member'}
             </Button>
           </div><div>
@@ -159,7 +159,6 @@ export default function MembersPage() {
               </p>
             </div>
             <Button
-              variant="primary"
               onClick={() => setShowAddForm(!showAddForm)}
             >
               {showAddForm ? 'Cancel' : '+ Add Member'}

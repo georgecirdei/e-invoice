@@ -75,7 +75,7 @@ export const LineItemsForm: React.FC<LineItemsFormProps> = ({
       {lineItems.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
           <p className="text-gray-500 mb-2">No items added yet</p>
-          <Button type="button" variant="primary" size="sm" onClick={addLineItem}>
+          <Button type="button"  size="sm" onClick={addLineItem}>
             + Add First Item
           </Button>
         </div>

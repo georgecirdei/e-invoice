@@ -106,7 +106,7 @@ export default function HomePage() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button variant="primary" size="lg" className="w-full sm:w-auto">
+              <Button  size="lg" className="w-full sm:w-auto">
                 Get Started
               </Button>
             </Link>
